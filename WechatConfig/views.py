@@ -38,6 +38,8 @@ def grab_article_content(url):
 
 
 def grab_article(count, begin):
+    count = str(count)
+    begin = str(begin)
     token = Setting.objects.get(key='token').value
     url = "https://mp.weixin.qq.com/cgi-bin/newmasssendpage?count=" + count + "&begin=" + begin + \
           "&token=" + token + "&lang=zh_CN&f=json&ajax=1&random=" + str(random.random())
