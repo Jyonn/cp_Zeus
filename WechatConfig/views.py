@@ -27,7 +27,7 @@ def init(request):
 
 def grab_article_content(url):
     # try:
-        print('start grab')
+    #     print('start grab')
         content = abstract_grab(url)
         content = content[content.find('<div class="rich_media_content " id="js_content">'):]
         content = content[content.find('<p'):]
@@ -61,7 +61,7 @@ def article_update(o_article):
     if not o_article.is_delete:
         if o_article.status == Article.STEP_CREATE:
             o_article.content = grab_article_content(o_article.content_url)
-            print('none?', o_article.content is None)
+            # print('none?', o_article.content is None)
             if o_article.content is not None:
                 o_article.content_pure = dr.sub('', o_article.content)
                 o_article.status = Article.STEP_CONTENT

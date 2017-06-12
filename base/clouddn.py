@@ -6,6 +6,8 @@ from django.utils.crypto import get_random_string
 
 from qiniu import Auth, put_file, etag
 
+from cp_Zeus.settings import TEMP_IMAGES
+
 
 class CloudDN:
     ak = 'fhC4mquqyfhRtfWrdVXGBiLTuCcarfQRXYCH3TZc'
@@ -38,7 +40,7 @@ def download_img(url, local_file):
 def deal_html(html, cover, timestamp):
     timestamp = str(timestamp)
 
-    for root, dirs, files in os.walk('temp_images', topdown=False):
+    for root, dirs, files in os.walk(TEMP_IMAGES, topdown=False):
         for name in files:
             os.remove(os.path.join(root, name))
 
@@ -53,7 +55,7 @@ def deal_html(html, cover, timestamp):
         item['data-src'] = None
         if item.name == 'img':
             sub_key = timestamp + '_' + get_random_string(length=16)
-            local_file = 'temp_images/' + sub_key
+            local_file = os.path.join(TEMP_IMAGES, sub_key)
             key = 'img/' + sub_key
             try:
                 # print("Download", url)
@@ -64,7 +66,7 @@ def deal_html(html, cover, timestamp):
             item['src'] = CloudDN.host + key
 
     sub_key = timestamp + '_' + get_random_string(length=16)
-    local_file = 'temp_images/' + sub_key
+    local_file = os.path.join(TEMP_IMAGES, sub_key)
     key = 'img/' + sub_key
     # print("Download", cover)
     try:
