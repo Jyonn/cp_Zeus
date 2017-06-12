@@ -1,3 +1,4 @@
+import os
 from urllib import request
 
 from bs4 import BeautifulSoup
@@ -36,6 +37,10 @@ def download_img(url, local_file):
 
 def deal_html(html, cover, timestamp):
     timestamp = str(timestamp)
+
+    for root, dirs, files in os.walk('temp_images', topdown=False):
+        for name in files:
+            os.remove(os.path.join(root, name))
 
     def has_attr_data_src(tag):
         return tag.has_attr('data-src')
