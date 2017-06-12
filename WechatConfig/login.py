@@ -1,3 +1,4 @@
+import os
 import time
 
 from WechatConfig.models import Cookie, Header, Setting
@@ -5,6 +6,8 @@ from urllib import request, parse
 import gzip
 import json
 import random
+
+from cp_Zeus.settings import IMG_PATH
 
 
 def get_cookie(need_cookie_list=None):
@@ -100,9 +103,10 @@ def wx_get_scan_image():
         req.add_header(header, v)
 
     res = request.urlopen(req)
-    image_path = '/img/scan.jpg'
+    image_name = 'scan.jpg'
+    image_path = os.path.join(IMG_PATH, image_name)
     # image_path = '/img/scan_'+str(int(time.time()))+'.jpg'
-    with open('static_files'+image_path, 'wb') as f:
+    with open(image_path, 'wb') as f:
         f.write(res.read())
     res.close()
 
