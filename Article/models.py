@@ -17,10 +17,12 @@ class Article(models.Model):
     STEP_CREATE = 0
     STEP_CONTENT = 1
     STEP_QINIU = 2
+    STEP_COMMENT = 3
     STEP_TABLE = (
         (STEP_CREATE, '创建条目'),
         (STEP_CONTENT, '抓取内容'),
         (STEP_QINIU, '转存七牛'),
+        (STEP_COMMENT, '抓取评论'),
     )
     appmsgid = models.CharField(
         verbose_name='推送消息ID',
@@ -153,6 +155,16 @@ class Article(models.Model):
 
         return o_article
 
+    @staticmethod
+    def set_share(article_id, share_num):
+        article_id = article_id[:-1] + str(int(article_id[-1]) - 1)
+        try:
+            o_article = Article.objects.get(article_id=article_id)
+            o_article.share_num = share_num
+            o_article.save()
+        except:
+            return
+
 # class ArticleAnalyse(models.Model):
 #     article = models.ForeignKey(
 #         Article,
@@ -184,3 +196,144 @@ class Article(models.Model):
 #         verbose_name='分享量',
 #         default=0,
 #     )
+
+
+class Comment(models.Model):
+    content_id = models.CharField(
+        verbose_name='评论正文唯一ID',
+        max_length=30,
+        unique=True,
+        db_index=True,
+        default=None,
+    )
+    nick_name = models.CharField(
+        verbose_name='用户昵称',
+        max_length=100,
+        default=None,
+    )
+    post_time = models.BigIntegerField(
+        verbose_name='留言时间',
+        default=0,
+    )
+    comment_id = models.CharField(
+        verbose_name='文章评论ID',
+        db_index=True,
+        max_length=20,
+        default=None,
+    )
+    content = models.CharField(
+        verbose_name='评论正文',
+        max_length=1023,
+        default=None,
+    )
+    icon = models.CharField(
+        verbose_name='评论头像',
+        max_length=1200,
+        default=None,
+    )
+    article_comment_id = models.IntegerField(
+        verbose_name='文章评论序号',
+        help_text='第几个评论的',
+        default=0,
+    )
+    is_elected = models.IntegerField(
+        verbose_name='是否被选择作为精选留言',
+        default=0,
+    )
+    is_top = models.IntegerField(
+        verbose_name='是否为置顶留言',
+        default=0,
+    )
+    my_id = models.IntegerField(
+        verbose_name='我还真不知道这个字段有啥卵用',
+        default=0,
+    )
+    status = models.IntegerField(
+        verbose_name='我还真不知道这个字段有啥卵用',
+        default=0,
+    )
+    del_flag = models.IntegerField(
+        verbose_name='应该是是否删除',
+        default=0,
+    )
+
+    @classmethod
+    def create(cls, comment_id, s_comment):
+        o_comment = cls(
+            content_id=s_comment['content_id'],
+            nick_name=s_comment['nick_name'],
+            post_time=s_comment['post_time'],
+            comment_id=comment_id,
+            content=s_comment['content'],
+            icon=s_comment['icon'],
+            article_comment_id=s_comment['id'],
+            is_elected=s_comment['is_elected'],
+            is_top=s_comment['is_top'],
+            my_id=s_comment['my_id'],
+            status=s_comment['status'],
+            del_flag=s_comment['del_flag'],
+        )
+        try:
+            o_comment.save()
+        except:
+            return
+        for s_reply in s_comment['reply']['reply_list']:
+            CommentReply.create(o_comment.content_id, s_reply)
+
+
+class CommentReply(models.Model):
+    content_reply_id = models.CharField(
+        verbose_name='评论回复唯一ID',
+        max_length=50,
+        unique=True,
+        db_index=True,
+    )
+    content_id = models.CharField(
+        verbose_name='Comment表评论正文唯一ID',
+        max_length=30,
+        default=None,
+    )
+    reply_id = models.IntegerField(
+        verbose_name='回复ID',
+        default=0,
+    )
+    content = models.CharField(
+        verbose_name='回复正文',
+        max_length=1023,
+        default=None,
+    )
+    create_time = models.BigIntegerField(
+        verbose_name='回复时间',
+        default=0,
+    )
+    reply_like_num = models.IntegerField(
+        verbose_name='回复的点赞数',
+        default=0,
+    )
+    to_uin = models.CharField(
+        verbose_name='我还真不知道这个字段有啥卵用',
+        max_length=20,
+        default=None,
+    )
+    uin = models.CharField(
+        verbose_name='我还真不知道这个字段有啥卵用',
+        max_length=20,
+        default=None,
+    )
+
+    @classmethod
+    def create(cls, content_id, s_reply):
+        content_reply_id = content_id + '_' + str(s_reply['reply_id'])
+        o_reply = cls(
+            content_reply_id=content_reply_id,
+            content_id=content_id,
+            content=s_reply['content'],
+            create_time=s_reply['create_time'],
+            reply_like_num=s_reply.get('reply_like_num', 0),
+            to_uin=s_reply['to_uin'],
+            uin=s_reply['uin'],
+        )
+        try:
+            o_reply.save()
+        finally:
+            return

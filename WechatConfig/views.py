@@ -2,7 +2,9 @@ import json
 import random
 import re
 
-from Article.models import Article
+import datetime
+
+from Article.models import Article, Comment
 from WechatConfig.login import wx_login, wx_visit_page, wx_get_scan_image, wx_check_image_scanned, wx_get_token
 from WechatConfig.models import Header, Setting
 from base.clouddn import deal_html
@@ -49,10 +51,13 @@ def grab_article(count, begin):
         return False
 
     for item in content['sent_list']:
+        # print(item['sent_result'])
+        if item['sent_result']['msg_status'] == 6:
+            continue
         send_time = item['sent_info']['time']
         for index, article in enumerate(item['appmsg_info']):
             o_article = Article.create(index, article, send_time)
-            article_update(o_article)
+            # article_update(o_article)
 
 
 def article_update(o_article):
@@ -69,12 +74,77 @@ def article_update(o_article):
             o_article.cdn_content, o_article.cdn_cover = \
                 deal_html(o_article.content, o_article.cover, o_article.send_time)
             o_article.status = Article.STEP_QINIU
+        if o_article.status == Article.STEP_QINIU:
+            ret = grab_comment_pages(o_article.comment_id)
+            if ret:
+                o_article.status = Article.STEP_COMMENT
     o_article.save()
+
+
+def grab_share_num():
+    token = Setting.objects.get(key='token').value
+    url = 'https://mp.weixin.qq.com/misc/appmsganalysis?action=all&order_direction=2&token=' + token + '&lang=zh_CN'
+    content = abstract_grab(url)
+    try:
+        content = re.search('window.cgiData2 = (.*?);', content, flags=0).group(1)
+        msgs = json.loads(content)['list']
+    except:
+        return False
+
+    share_dict = {}
+    for item in msgs:
+        article_id = item['msgid']
+        if article_id in share_dict:
+            share_dict[article_id] += item['share_user']
+        else:
+            share_dict[article_id] = item['share_user']
+    for article_id, share_num in share_dict.items():
+        Article.set_share(article_id, share_num)
+    return True
+
+
+def grab_comment_by_comment_id(token, comment_id, count, begin):
+    count = str(count)
+    begin = str(begin)
+    url = 'https://mp.weixin.qq.com/misc/appmsgcomment?action=list_comment&mp_version=7&type=1&comment_id=' + comment_id + \
+          '&begin=' + begin + '&count=' + count + '&token=' + token + '&lang=zh_CN'
+    content = abstract_grab(url)
+    try:
+        content = re.search('list : (.*?)\n', content, flags=0).group(1)
+        content = content[:-1]
+        comment_msg = json.loads(content)
+    except:
+        return -1
+    for s_comment in comment_msg['comment']:
+        Comment.create(comment_id, s_comment)
+    return comment_msg['total_elected_count']
+
+
+def grab_comment_pages(comment_id):
+    token = Setting.objects.get(key='token').value
+    count, begin = 10, 0
+    total_num = grab_comment_by_comment_id(token, comment_id, count, begin)
+    if total_num == -1:
+        return False
+    while total_num > count + begin:
+        begin += count
+        total_num = grab_comment_by_comment_id(token, comment_id, count, begin)
+        if total_num == -1:
+            return False
+    return True
+
+
+def grab_comment(request):
+    for o_article in Article.objects.all():
+        article_update(o_article)
+    return response()
 
 
 def grab_article_list(request):
     grab_article(7, 0)
-    return response()
+    grab_article(7, 7)
+    ret = grab_share_num()
+    return response(body=ret)
 
 
 def grab_history_article(request):

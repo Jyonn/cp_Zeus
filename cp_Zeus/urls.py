@@ -17,18 +17,20 @@ from django.conf.urls import url, static
 
 # from django.contrib import admin
 
-from WechatConfig.views import grab_article_list, get_login_image_scan, check_login, init, grab_history_article
+from WechatConfig import views
 from cp_Zeus.settings import STATIC_FILE
 
 urlpatterns = [
     # url(r'^admin/', admin.site.urls),
-    url(r'^api/init$', init),
+    url(r'^api/init$', views.init),
 
-    url(r'^api/login/scan$', get_login_image_scan),
-    url(r'^api/login/check-in$', check_login),
+    url(r'^api/login/scan$', views.get_login_image_scan),
+    url(r'^api/login/check-in$', views.check_login),
 
-    url(r'^api/article/list$', grab_article_list),
-    url(r'^api/article/all$', grab_history_article),
+    url(r'^api/article/list$', views.grab_article_list),
+    url(r'^api/article/comment', views.grab_comment),
+    # url(r'^api/article/fixed$', views.fix_seq_article_id),
+    # url(r'^api/article/all$', grab_history_article),
 ]
 
 urlpatterns += static.static('/', document_root=STATIC_FILE)
