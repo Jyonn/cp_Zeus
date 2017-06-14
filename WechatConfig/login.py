@@ -1,9 +1,7 @@
 import os
-import time
 
 from WechatConfig.models import Cookie, Header, Setting
 from urllib import request, parse
-import gzip
 import json
 import random
 

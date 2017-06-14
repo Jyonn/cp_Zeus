@@ -152,6 +152,7 @@ class Article(models.Model):
                 status=Article.STEP_CREATE,
             )
         o_article.save()
+        ArticleAnalyse.create(o_article)
 
         return o_article
 
@@ -162,53 +163,102 @@ class Article(models.Model):
             o_article = Article.objects.get(article_id=article_id)
             o_article.share_num = share_num
             o_article.save()
+            ArticleAnalyseShare.create(o_article)
         except:
             return
 
-# class ArticleAnalyse(models.Model):
-#     article = models.ForeignKey(
-#         Article,
-#         verbose_name='关联文章'
-#     )
-#     create_time = models.DateTimeField(
-#         verbose_name='创建时间',
-#         auto_now=True,
-#         auto_created=True,
-#     )
-#     comment_num = models.IntegerField(
-#         verbose_name='评论数',
-#         default=0,
-#     )
-#     reprint_num = models.IntegerField(
-#         verbose_name='转载数',
-#         help_text='公众号转载，非转发数',
-#         default=0,
-#     )
-#     like_num = models.IntegerField(
-#         verbose_name='点赞数',
-#         default=0,
-#     )
-#     read_num = models.IntegerField(
-#         verbose_name='阅读量',
-#         default=0,
-#     )
-#     share_num = models.IntegerField(
-#         verbose_name='分享量',
-#         default=0,
-#     )
+
+class ArticleAnalyse(models.Model):
+    """
+    文章数据更新类（评论、转载、阅读、点赞）
+    """
+    article = models.ForeignKey(
+        Article,
+        verbose_name='关联文章'
+    )
+    create_time = models.DateTimeField(
+        verbose_name='创建时间',
+        auto_now=True,
+        auto_created=True,
+    )
+    comment_num = models.IntegerField(
+        verbose_name='评论数',
+        default=0,
+    )
+    reprint_num = models.IntegerField(
+        verbose_name='转载数',
+        help_text='公众号转载，非转发数',
+        default=0,
+    )
+    like_num = models.IntegerField(
+        verbose_name='点赞数',
+        default=0,
+    )
+    read_num = models.IntegerField(
+        verbose_name='阅读量',
+        default=0,
+    )
+
+    @classmethod
+    def create(cls, o_article):
+        o_analyse = cls(
+            article=o_article,
+            comment_num=o_article.comment_num,
+            reprint_num=o_article.reprint_num,
+            like_num=o_article.like_num,
+            read_num=o_article.read_num,
+        )
+        o_analyse.save()
+
+
+class ArticleAnalyseShare(models.Model):
+    """
+    文章数据更新类（分享）
+    """
+    article = models.ForeignKey(
+        Article,
+        verbose_name='关联文章'
+    )
+    create_time = models.DateTimeField(
+        verbose_name='创建时间',
+        auto_now=True,
+        auto_created=True,
+    )
+    share_num = models.IntegerField(
+        verbose_name='分享量',
+        default=0,
+    )
+
+    @classmethod
+    def create(cls, o_article):
+        o_analyse = cls(
+            article=o_article,
+            share_num=o_article.share_num,
+        )
+        o_analyse.save()
 
 
 class Comment(models.Model):
+    """
+    文章评论类
+    """
+    L = {
+        'content_id': 30,
+        'nick_name': 100,
+        'comment_id': 20,
+        'content': 1023,
+        'icon': 1200,
+    }
     content_id = models.CharField(
         verbose_name='评论正文唯一ID',
-        max_length=30,
+        max_length=L['content_id'],
         unique=True,
         db_index=True,
         default=None,
     )
     nick_name = models.CharField(
         verbose_name='用户昵称',
-        max_length=100,
+        max_length=L['nick_name'],
         default=None,
     )
     post_time = models.BigIntegerField(
@@ -218,17 +268,17 @@ class Comment(models.Model):
     comment_id = models.CharField(
         verbose_name='文章评论ID',
         db_index=True,
-        max_length=20,
+        max_length=L['comment_id'],
         default=None,
     )
     content = models.CharField(
         verbose_name='评论正文',
-        max_length=1023,
+        max_length=L['content'],
         default=None,
     )
     icon = models.CharField(
         verbose_name='评论头像',
-        max_length=1200,
+        max_length=L['icon'],
         default=None,
     )
     article_comment_id = models.IntegerField(
@@ -282,15 +332,25 @@ class Comment(models.Model):
 
 
 class CommentReply(models.Model):
+    """
+    评论回复类
+    """
+    L = {
+        'content_reply_id': 50,
+        'content_id': 30,
+        'content': 1023,
+        'to_uin': 20,
+        'uin': 20,
+    }
     content_reply_id = models.CharField(
         verbose_name='评论回复唯一ID',
-        max_length=50,
+        max_length=L['content_reply_id'],
         unique=True,
         db_index=True,
     )
     content_id = models.CharField(
         verbose_name='Comment表评论正文唯一ID',
-        max_length=30,
+        max_length=L['content_id'],
         default=None,
     )
     reply_id = models.IntegerField(
@@ -299,7 +359,7 @@ class CommentReply(models.Model):
     )
     content = models.CharField(
         verbose_name='回复正文',
-        max_length=1023,
+        max_length=L['content'],
         default=None,
     )
     create_time = models.BigIntegerField(
@@ -312,12 +372,12 @@ class CommentReply(models.Model):
     )
     to_uin = models.CharField(
         verbose_name='我还真不知道这个字段有啥卵用',
-        max_length=20,
+        max_length=L['to_uin'],
         default=None,
     )
     uin = models.CharField(
         verbose_name='我还真不知道这个字段有啥卵用',
-        max_length=20,
+        max_length=L['uin'],
         default=None,
     )
 

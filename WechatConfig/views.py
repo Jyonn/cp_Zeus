@@ -2,7 +2,6 @@ import json
 import random
 import re
 
-import datetime
 
 from Article.models import Article, Comment
 from WechatConfig.login import wx_login, wx_visit_page, wx_get_scan_image, wx_check_image_scanned, wx_get_token
@@ -57,7 +56,7 @@ def grab_article(count, begin):
         send_time = item['sent_info']['time']
         for index, article in enumerate(item['appmsg_info']):
             o_article = Article.create(index, article, send_time)
-            # article_update(o_article)
+            article_update(o_article)
 
 
 def article_update(o_article):
@@ -106,8 +105,8 @@ def grab_share_num():
 def grab_comment_by_comment_id(token, comment_id, count, begin):
     count = str(count)
     begin = str(begin)
-    url = 'https://mp.weixin.qq.com/misc/appmsgcomment?action=list_comment&mp_version=7&type=1&comment_id=' + comment_id + \
-          '&begin=' + begin + '&count=' + count + '&token=' + token + '&lang=zh_CN'
+    url = 'https://mp.weixin.qq.com/misc/appmsgcomment?action=list_comment&mp_version=7&type=1&comment_id=' + \
+          comment_id + '&begin=' + begin + '&count=' + count + '&token=' + token + '&lang=zh_CN'
     content = abstract_grab(url)
     try:
         content = re.search('list : (.*?)\n', content, flags=0).group(1)
