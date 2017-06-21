@@ -40,7 +40,7 @@ def wx_login():
     url = 'https://mp.weixin.qq.com/cgi-bin/bizlogin?action=startlogin'
     post_data = parse.urlencode({
         'username': 'Chaping321@163.com',
-        'pwd': '4c83d77de6fd405ca1333a6e05c0fa71',
+        'pwd': 'afd0410fbec5081474db9d7e4a5bc5c8',
         'imgcode': '',
         'f': 'json'
     }).encode('utf-8')
