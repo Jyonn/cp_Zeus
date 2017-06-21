@@ -23,6 +23,8 @@ def init(request):
     Header.create('Upgrade-Insecure-Requests', '1')
     Setting.create('token', '0')
     Setting.create('status', 'need-login')
+    Setting.create('username', 'Chaping321@163.com')
+    Setting.create('pwd', 'afd0410fbec5081474db9d7e4a5bc5c8')
     return response()
 
 

@@ -35,12 +35,13 @@ def add_cookie_from_header(headers):
 
 def wx_login():
     need_cookie_list = ['ua_id']
-    need_headers = ['Host', 'Connection', 'Origin', 'X-Requested-With', 'User-Agent', 'Accept-Encoding', 'Accept-Language']
+    need_headers = ['Host', 'Connection', 'Origin', 'X-Requested-With', 'User-Agent', 'Accept-Encoding',
+                    'Accept-Language']
 
     url = 'https://mp.weixin.qq.com/cgi-bin/bizlogin?action=startlogin'
     post_data = parse.urlencode({
-        'username': 'Chaping321@163.com',
-        'pwd': 'afd0410fbec5081474db9d7e4a5bc5c8',
+        'username': Setting.objects.get('username'),
+        'pwd': Setting.objects.get('pwd'),
         'imgcode': '',
         'f': 'json'
     }).encode('utf-8')
@@ -87,7 +88,7 @@ def wx_visit_page():
 
 def wx_get_scan_image():
     need_cookie_list = ['uuid', 'bizuin', 'ticket', 'ticket_id', 'account', 'cert', 'ticket_uin', 'login_certificate',
-                       'ticket_certificate', 'fake_id', 'login_sid_ticket', 'noticeLoginFlag', 'ua_id']
+                        'ticket_certificate', 'fake_id', 'login_sid_ticket', 'noticeLoginFlag', 'ua_id']
     need_headers = ['Host', 'Connection', 'User-Agent', 'Accept-Language']
     url = 'https://mp.weixin.qq.com/cgi-bin/loginqrcode?action=getqrcode&param=4300&rd='+str(random.randint(100, 1000))
 
